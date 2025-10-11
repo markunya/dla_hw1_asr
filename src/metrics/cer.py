@@ -10,7 +10,6 @@ from src.metrics.utils import calc_cer
 # Note: they can be written in a pretty way
 # Note 2: overall metric design can be significantly improved
 
-
 class ArgmaxCERMetric(BaseMetric):
     def __init__(self, text_encoder, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -21,7 +20,7 @@ class ArgmaxCERMetric(BaseMetric):
     ):
         cers = []
         predictions = torch.argmax(log_probs.cpu(), dim=-1).numpy()
-        lengths = log_probs_length.detach().numpy()
+        lengths = log_probs_length.detach().cpu().numpy()
         for log_prob_vec, length, target_text in zip(predictions, lengths, text):
             target_text = self.text_encoder.normalize_text(target_text)
             pred_text = self.text_encoder.ctc_decode(log_prob_vec[:length])

@@ -29,39 +29,35 @@ def main(config):
     writer = instantiate(config.writer, logger, project_config)
 
     if config.trainer.device == "auto":
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+        if torch.cuda.is_available():
+            device = "cuda"
+        elif torch.backends.mps.is_available():
+            device = "mps"
+        else:
+            device = "cpu"
     else:
         device = config.trainer.device
 
-    # setup text_encoder
     text_encoder = instantiate(config.text_encoder)
 
-    # setup data_loader instances
-    # batch_transforms should be put on device
     dataloaders, batch_transforms = get_dataloaders(config, text_encoder, device)
 
-    # build model architecture, then print to console
     model = instantiate(config.model, n_tokens=len(text_encoder)).to(device)
     logger.info(model)
 
-    # get function handles of loss and metrics
     loss_function = instantiate(config.loss_function).to(device)
 
     metrics = {"train": [], "inference": []}
     for metric_type in ["train", "inference"]:
         for metric_config in config.metrics.get(metric_type, []):
-            # use text_encoder in metrics
             metrics[metric_type].append(
                 instantiate(metric_config, text_encoder=text_encoder)
             )
 
-    # build optimizer, learning rate scheduler
     trainable_params = filter(lambda p: p.requires_grad, model.parameters())
     optimizer = instantiate(config.optimizer, params=trainable_params)
     lr_scheduler = instantiate(config.lr_scheduler, optimizer=optimizer)
 
-    # epoch_len = number of iterations for iteration-based training
-    # epoch_len = None or len(dataloader) for epoch-based training
     epoch_len = config.trainer.get("epoch_len")
 
     trainer = Trainer(

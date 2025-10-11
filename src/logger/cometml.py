@@ -1,8 +1,10 @@
 from datetime import datetime
+from PIL import Image
 
+import io
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
 
 class CometMLWriter:
     """
@@ -177,7 +179,9 @@ class CometMLWriter:
                 in the CometML-friendly format.
         """
         self.exp.log_image(
-            image_data=image, name=self._object_name(image_name), step=self.step
+            image_data=image,
+            name=self._object_name(image_name),
+            step=self.step,
         )
 
     def add_audio(self, audio_name, audio, sample_rate=None):

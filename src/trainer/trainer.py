@@ -1,7 +1,8 @@
 from pathlib import Path
 
+import torch
 import pandas as pd
-
+from tqdm import tqdm
 from src.logger.utils import plot_spectrogram
 from src.metrics.tracker import MetricTracker
 from src.metrics.utils import calc_cer, calc_wer
@@ -33,7 +34,7 @@ class Trainer(BaseTrainer):
                 model outputs, and losses.
         """
         batch = self.move_batch_to_device(batch)
-        batch = self.transform_batch(batch)  # transform batch on device -- faster
+        batch = self.transform_batch(batch)
 
         metric_funcs = self.metrics["inference"]
         if self.is_train:
@@ -41,19 +42,24 @@ class Trainer(BaseTrainer):
             self.optimizer.zero_grad()
 
         outputs = self.model(**batch)
+
         batch.update(outputs)
 
         all_losses = self.criterion(**batch)
         batch.update(all_losses)
 
         if self.is_train:
-            batch["loss"].backward()  # sum of all losses is always called loss
+            if self.detect_anomaly:
+                with torch.autograd.set_detect_anomaly(True):
+                    batch["loss"].backward()
+            else:
+                batch["loss"].backward()
+
             self._clip_grad_norm()
             self.optimizer.step()
             if self.lr_scheduler is not None:
                 self.lr_scheduler.step()
 
-        # update metrics for each loss (in case of multiple losses)
         for loss_name in self.config.writer.loss_names:
             metrics.update(loss_name, batch[loss_name].item())
 
@@ -73,14 +79,10 @@ class Trainer(BaseTrainer):
             mode (str): train or inference. Defines which logging
                 rules to apply.
         """
-        # method to log data from you batch
-        # such as audio, text or images, for example
 
-        # logging scheme might be different for different partitions
-        if mode == "train":  # the method is called only every self.log_step steps
+        if mode == "train":
             self.log_spectrogram(**batch)
         else:
-            # Log Stuff
             self.log_spectrogram(**batch)
             self.log_predictions(**batch)
 
@@ -97,9 +99,11 @@ class Trainer(BaseTrainer):
         # this logging can also be improved significantly
 
         argmax_inds = log_probs.cpu().argmax(-1).numpy()
+        tqdm.write(str(argmax_inds))
+
         argmax_inds = [
             inds[: int(ind_len)]
-            for inds, ind_len in zip(argmax_inds, log_probs_length.numpy())
+            for inds, ind_len in zip(argmax_inds, log_probs_length.cpu().numpy())
         ]
         argmax_texts_raw = [self.text_encoder.decode(inds) for inds in argmax_inds]
         argmax_texts = [self.text_encoder.ctc_decode(inds) for inds in argmax_inds]

@@ -2,7 +2,6 @@ import torch
 from torch import Tensor
 from torch.nn import CTCLoss
 
-
 class CTCLossWrapper(CTCLoss):
     def forward(
         self, log_probs, log_probs_length, text_encoded, text_encoded_length, **batch
