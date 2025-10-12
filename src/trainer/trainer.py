@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import os
 import torch
 import pandas as pd
 from tqdm import tqdm
@@ -81,15 +82,17 @@ class Trainer(BaseTrainer):
         """
 
         if mode == "train":
-            self.log_spectrogram(**batch)
+            self.log_input(**batch)
         else:
-            self.log_spectrogram(**batch)
-            self.log_predictions(**batch)
+            self.log_input(**batch)
+            self.log_input(**batch)
 
-    def log_spectrogram(self, spectrogram, **batch):
+    def log_input(self, spectrogram, audio, audio_path, **batch):
         spectrogram_for_plot = spectrogram[0].detach().cpu()
         image = plot_spectrogram(spectrogram_for_plot)
-        self.writer.add_image("spectrogram", image)
+        self.writer.add_image(os.path.basename(audio_path[0]), image)
+
+        self.writer.add_audio(os.path.basename(audio_path[0]), audio[0], self.sample_rate)
 
     def log_predictions(
         self, text, log_probs, log_probs_length, audio_path, examples_to_log=10, **batch

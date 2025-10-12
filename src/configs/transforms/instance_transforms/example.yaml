@@ -16,10 +16,16 @@ train:
         eps: 1.0e-5
       - _target_: src.transforms.spec_augs.Normalize
         eps: 1.0e-5
+      - _target_: src.transforms.spec_augs.FreqCutout
+
   audio:
     _target_: torchvision.transforms.v2.Compose
     transforms:
       - _target_: src.transforms.wav_augs.Gain
+      - _target_: src.transforms.wav_augs.RandomImpulseResponse
+        root: dns_irs
+      - _target_: src.transforms.wav_augs.RandomNoise
+        root: dns_noises
 
 inference:
   get_spectrogram:

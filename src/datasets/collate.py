@@ -13,30 +13,39 @@ def collate_fn(dataset_items: list[dict]):
         result_batch (dict[Tensor]): dict, containing batch-version
             of the tensors.
     """
-    spectrograms = [item["spectrogram"].squeeze(0) if item["spectrogram"].dim() == 3 else item["spectrogram"]
-                    for item in dataset_items]
-    spectrogram_lengths = torch.tensor([spec.shape[-1] for spec in spectrograms], dtype=torch.long)
+    specs = [
+        (it["spectrogram"].squeeze(0) if it["spectrogram"].dim() == 3 else it["spectrogram"])
+        for it in dataset_items
+    ]
+    spec_lens = torch.tensor([s.shape[-1] for s in specs], dtype=torch.long)
+    n_mels = specs[0].shape[0]
+    T_max = int(spec_lens.max().item())
+    padded_specs = torch.zeros(len(specs), n_mels, T_max, dtype=torch.float32)
+    for i, s in enumerate(specs):
+        padded_specs[i, :, : s.shape[-1]] = s
 
-    max_T = max(s.shape[-1] for s in spectrograms)
-    n_mels = spectrograms[0].shape[0]
-    padded_spectrograms = torch.zeros(len(spectrograms), n_mels, max_T, dtype=torch.float32)
-    for i, s in enumerate(spectrograms):
-        padded_spectrograms[i, :, : s.shape[-1]] = s
+    waves = [it["audio"] for it in dataset_items]
+    wave_lens = torch.tensor([w.shape[-1] for w in waves], dtype=torch.long)
+    S_max = int(wave_lens.max().item())
+    padded_waves = torch.zeros(len(waves), 1, S_max, dtype=torch.float32)
+    for i, w in enumerate(waves):
+        padded_waves[i, :, : w.shape[-1]] = w
 
-    text_encoded = [torch.tensor(item["text_encoded"], dtype=torch.long) for item in dataset_items]
-    text_encoded_length = torch.tensor([t.size(0) for t in text_encoded], dtype=torch.long)
-    padded_text_encoded = pad_sequence(text_encoded, batch_first=True, padding_value=0)
+    text_tensors = [it["text_encoded"].squeeze(0).to(torch.long) for it in dataset_items]
+    text_lens = torch.tensor([t.size(0) for t in text_tensors], dtype=torch.long)
+    padded_texts = pad_sequence(text_tensors, batch_first=True, padding_value=0)
 
-    texts = [item["text"] for item in dataset_items]
-    audio_paths = [item["audio_path"] for item in dataset_items]
+    texts = [it["text"] for it in dataset_items]
+    audio_paths = [it["audio_path"] for it in dataset_items]
 
     batch = {
-        "spectrogram": padded_spectrograms,
-        "spectrogram_length": spectrogram_lengths,
-        "text_encoded": padded_text_encoded,
-        "text_encoded_length": text_encoded_length,
+        "audio": padded_waves,
+        "audio_length": wave_lens,
+        "spectrogram": padded_specs,
+        "spectrogram_length": spec_lens,
+        "text_encoded": padded_texts,
+        "text_encoded_length": text_lens,
         "text": texts,
         "audio_path": audio_paths,
     }
-
     return batch

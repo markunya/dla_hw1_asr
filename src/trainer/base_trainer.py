@@ -75,6 +75,7 @@ class BaseTrainer:
         self.batch_transforms = batch_transforms
 
         self.train_dataloader = dataloaders["train"]
+        self.sample_rate = self.train_dataloader.dataset.target_sr
         if epoch_len is None:
             self.epoch_len = len(self.train_dataloader)
         else:
