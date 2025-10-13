@@ -3,13 +3,7 @@ import numpy as np
 from string import ascii_lowercase
 
 import torch
-
-# TODO add CTC decode
-# TODO add BPE, LM, Beam Search support
-# Note: think about metrics and encoder
-# The design can be remarkably improved
-# to calculate stuff more efficiently and prettier
-
+import kenlm
 
 class CTCTextEncoder:
     EMPTY_TOK = ""

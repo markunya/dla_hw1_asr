@@ -1,5 +1,5 @@
 defaults:
-  - model: conformer_torch
+  - model: conformer
   - writer: cometml
   - metrics: metrics
   - datasets: train-clean-100

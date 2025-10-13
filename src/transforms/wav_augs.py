@@ -96,7 +96,7 @@ class RandomImpulseResponse:
 
             processed_wav = torchaudio.functional.fftconvolve(wav, ir_waveform, mode='full')
             processed_wav = processed_wav[...,:wav.shape[-1]]
-        except Exception as e:
+        except Exception:
             return wav
         
         return processed_wav.squeeze(0)
