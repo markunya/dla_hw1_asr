@@ -149,7 +149,10 @@ def setup_saving_and_logging(config):
     Returns:
         logger (Logger): logger that logs output.
     """
-    save_dir = ROOT_PATH / config.trainer.save_dir / config.writer.run_name
+    if "trainer" in config:
+        save_dir = ROOT_PATH / config.trainer.save_dir / config.writer.run_name
+    else:
+        save_dir = ROOT_PATH / config.inferencer.save_dir / config.writer.run_name
     saving_init(save_dir, config)
 
     if config.trainer.get("resume_from") is not None:

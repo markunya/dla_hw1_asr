@@ -9,6 +9,6 @@ defaults:
 inferencer:
   device_tensors: ["data_object", "labels"]
   device: auto
-  save_path: "inference_saved"
+  save_dir: "inference_saved"
   seed: 1
   from_pretrained: "saved/model_best.pth"
