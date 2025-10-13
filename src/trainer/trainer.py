@@ -3,17 +3,38 @@ from pathlib import Path
 import os
 import torch
 import pandas as pd
+import kenlm
 from tqdm import tqdm
 from src.logger.utils import plot_spectrogram
 from src.metrics.tracker import MetricTracker
 from src.metrics.utils import calc_cer, calc_wer
 from src.trainer.base_trainer import BaseTrainer
-
+from utils.beam_search import beam_search_decode_lp
 
 class Trainer(BaseTrainer):
     """
     Trainer class. Defines the logic of batch logging and processing.
     """
+
+    def __init__(self, config, model, criterion, metrics, optimizer=None, lr_scheduler=None, **kwargs):
+        super().__init__(config, model, criterion, metrics, optimizer, lr_scheduler, **kwargs)
+
+        self.decode_cfg = getattr(self.config, "decoder", {})
+        self.use_beam = self.decode_cfg.get("type", "argmax") == "beam"
+        self.beam_size = int(self.decode_cfg.get("beam_size", 20))
+        self.alpha = float(self.decode_cfg.get("alpha", 0.7))
+        self.beta = float(self.decode_cfg.get("beta", 1.5))
+        self.prune_topk = self.decode_cfg.get("prune_topk", 50)
+        self.lm_path = self.decode_cfg.get("lm_path", None)
+
+        self.lm = None
+        if self.use_beam and self.lm_path:
+            try:
+                self.lm = kenlm.LanguageModel(self.lm_path)
+                tqdm.write(f"[Trainer] Loaded KenLM: {self.lm_path}")
+            except Exception as e:
+                tqdm.write(f"[Trainer] Failed to load LM ({self.lm_path}): {e}\nContinue without LM.")
+                self.lm = None
 
     def process_batch(self, batch, metrics: MetricTracker):
         """
@@ -97,10 +118,6 @@ class Trainer(BaseTrainer):
     def log_predictions(
         self, text, log_probs, log_probs_length, audio_path, examples_to_log=10, **batch
     ):
-        # TODO add beam search
-        # Note: by improving text encoder and metrics design
-        # this logging can also be improved significantly
-
         argmax_inds = log_probs.cpu().argmax(-1).numpy()
         tqdm.write(str(argmax_inds))
 
@@ -110,7 +127,28 @@ class Trainer(BaseTrainer):
         ]
         argmax_texts_raw = [self.text_encoder.decode(inds) for inds in argmax_inds]
         argmax_texts = [self.text_encoder.ctc_decode(inds) for inds in argmax_inds]
-        tuples = list(zip(argmax_texts, text, argmax_texts_raw, audio_path))
+
+        beam_texts = None
+        if self.use_beam:
+            try:
+                beam_texts = beam_search_decode_lp(
+                    log_probs=log_probs,
+                    log_probs_length=log_probs_length,
+                    ind2char=self.text_encoder.ind2char,
+                    blank_id=self.text_encoder.blank_id,
+                    beam_size=self.beam_size,
+                    alpha=self.alpha,
+                    beta=self.beta,
+                    lm=self.lm,
+                    prune_topk=self.prune_topk,
+                )
+            except Exception as e:
+                tqdm.write(f"[Trainer] Beam search упал: {e}. Фоллбек на argmax.")
+                beam_texts = None
+
+        final_preds = beam_texts if beam_texts is not None else argmax_texts
+
+        tuples = list(zip(final_preds, text, argmax_texts_raw, audio_path))
 
         rows = {}
         for pred, target, raw_pred, audio_path in tuples[:examples_to_log]:

@@ -21,8 +21,8 @@ class CTCTextEncoder:
         self.alphabet = alphabet
         self.vocab = [self.EMPTY_TOK] + list(self.alphabet)
 
-        self.ind2char = dict(enumerate(self.vocab))
-        self.char2ind = {v: k for k, v in self.ind2char.items()}
+        self.ind2tok = dict(enumerate(self.vocab))
+        self.char2ind = {v: k for k, v in self.ind2tok.items()}
         self.blank_id = 0
 
     def __len__(self):
@@ -30,7 +30,7 @@ class CTCTextEncoder:
 
     def __getitem__(self, item: int):
         assert type(item) is int
-        return self.ind2char[item]
+        return self.ind2tok[item]
 
     def encode(self, text) -> torch.Tensor:
         text = self.normalize_text(text)
@@ -52,7 +52,7 @@ class CTCTextEncoder:
         Returns:
             raw_text (str): raw text with empty tokens and repetitions.
         """
-        return "".join([self.ind2char[int(ind)] for ind in inds]).strip()
+        return "".join([self.ind2tok[int(ind)] for ind in inds]).strip()
 
     def ctc_decode(self, inds) -> str:
         if isinstance(inds, torch.Tensor):
@@ -73,7 +73,7 @@ class CTCTextEncoder:
                 continue
             if i == prev:
                 continue
-            out_chars.append(self.ind2char[i])
+            out_chars.append(self.ind2tok[i])
             prev = i
 
         text = "".join(out_chars)
