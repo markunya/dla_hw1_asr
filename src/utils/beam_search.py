@@ -41,9 +41,9 @@ def beam_search_decode_one(
         beam_size: int = 20,
         alpha: float = 0.7,
         beta: float = 1.5,
-        lm: "kenlm.LanguageModel" | None = None,
+        lm = None,
         space_token: str = " ",
-        prune_topk: int | None = 50,
+        prune_topk = 50,
     ) -> str:
         T, V = lp.shape
 
@@ -139,8 +139,8 @@ def beam_search_decode_lp(
         beam_size: int = 20,
         alpha: float = 0.7,
         beta: float = 1.5,
-        lm: "kenlm.LanguageModel" | None = None,
-        prune_topk: int | None = 50,
+        lm = None,
+        prune_topk = 50,
     ) -> list[str]:
         log_probs = log_probs.detach().cpu()
         log_probs_length = log_probs_length.detach().cpu()
