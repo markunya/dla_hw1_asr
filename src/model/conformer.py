@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 def _conv_out_len(l: torch.Tensor, k: int, s: int, p: int = 1, d: int = 1):
-    return torch.floor((l + 2*p - d*(k - 1) - 1) / s + 1)
+    return torch.floor((l + 2 * p - d * (k - 1) - 1) / s + 1)
 
 def lengths_after_subsampling(lens: torch.Tensor,
                               kernel_stride_pairs=((3, 2), (3, 2)),
