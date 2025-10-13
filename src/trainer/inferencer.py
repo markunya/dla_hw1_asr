@@ -3,7 +3,7 @@ import csv
 import torch
 import kenlm
 from tqdm.auto import tqdm
-from base_trainer import BaseTrainer
+from src.trainer.base_trainer import BaseTrainer
 from src.metrics.tracker import MetricTracker
 from src.metrics.utils import calc_cer, calc_wer
 from utils.beam_search import beam_search_decode_lp
