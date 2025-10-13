@@ -4,6 +4,7 @@ defaults:
   - datasets: test-other
   - dataloader: torch_dataloader
   - transforms: only_instanse
+  - text_encoder: ctc
   - _self_
 inferencer:
   device_tensors: ["data_object", "labels"]
