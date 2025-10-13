@@ -6,7 +6,7 @@ from tqdm.auto import tqdm
 from src.trainer.base_trainer import BaseTrainer
 from src.metrics.tracker import MetricTracker
 from src.metrics.utils import calc_cer, calc_wer
-from utils.beam_search import beam_search_decode_lp
+from src.utils.beam_search import beam_search_decode_lp
 
 class Inferencer(BaseTrainer):
     def __init__(

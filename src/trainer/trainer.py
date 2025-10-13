@@ -9,7 +9,7 @@ from src.logger.utils import plot_spectrogram
 from src.metrics.tracker import MetricTracker
 from src.metrics.utils import calc_cer, calc_wer
 from src.trainer.base_trainer import BaseTrainer
-from utils.beam_search import beam_search_decode_lp
+from src.utils.beam_search import beam_search_decode_lp
 
 class Trainer(BaseTrainer):
     """
