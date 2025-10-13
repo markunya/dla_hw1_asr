@@ -8,7 +8,7 @@ defaults:
   - _self_
 optimizer:
   _target_: torch.optim.AdamW
-  lr: 3e-4
+  lr: 1e-4
 lr_scheduler:
   _target_: torch.optim.lr_scheduler.OneCycleLR
   max_lr: 1e-3
@@ -22,9 +22,9 @@ text_encoder:
   _target_: src.text_encoder.CTCTextEncoder
 trainer:
   detect_anomaly: false
-  log_step: 10
-  n_epochs: 1
-  epoch_len: 200
+  log_step: 50
+  n_epochs: 20
+  epoch_len: 400
   device_tensors: ["spectrogram", "text_encoded"]
   resume_from: null
   device: auto
