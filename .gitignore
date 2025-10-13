@@ -5,8 +5,10 @@ __pycache__/
 
 # C extensions
 *.so
+*.sbatch
 
 # Distribution / packaging
+logs/
 dns_irs/
 dns_noises/
 .Python
