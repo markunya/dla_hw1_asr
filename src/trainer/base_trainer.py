@@ -320,6 +320,42 @@ class BaseTrainer:
                 )
                 stop_process = True
         return best, stop_process, not_improved_count
+    
+    @torch.no_grad()
+    def run_inference_(
+        self,
+        dataloader=None,
+        part: str = "inference",
+    ):
+        self.is_train = False
+        self.model.eval()
+
+        if dataloader is None:
+            assert part in self.evaluation_dataloaders, f"No dataloader for part='{part}'"
+            dataloader = self.evaluation_dataloaders[part]
+
+        if self.evaluation_metrics is not None:
+            self.evaluation_metrics.reset()
+
+        with torch.no_grad():
+            for batch_idx, batch in tqdm(
+                enumerate(dataloader), desc=part, total=len(dataloader)
+            ):
+                batch = self.move_batch_to_device(batch)
+                batch = self.transform_batch(batch)
+
+                outputs = self.model(**batch)
+                batch.update(outputs)
+
+                if self.metrics is not None and "inference" in self.metrics and self.evaluation_metrics is not None:
+                    for met in self.metrics["inference"]:
+                        self.evaluation_metrics.update(met.name, met(**batch))
+
+        if self.writer is not None and self.evaluation_metrics is not None:
+            self.writer.set_step(len(dataloader), part)
+            self._log_scalars(self.evaluation_metrics)
+
+        return {} if self.evaluation_metrics is None else self.evaluation_metrics.result()
 
     def move_batch_to_device(self, batch):
         """
@@ -335,6 +371,16 @@ class BaseTrainer:
         for tensor_for_device in self.cfg_trainer.device_tensors:
             batch[tensor_for_device] = batch[tensor_for_device].to(self.device)
         return batch
+    
+    @torch.no_grad()
+    def run_inference(self):
+        results = {}
+        for part, dl in self.evaluation_dataloaders.items():
+            results[part] = self.run_inference_(
+                dataloader=dl,
+                part=part,
+            )
+        return results
 
     def transform_batch(self, batch):
         """

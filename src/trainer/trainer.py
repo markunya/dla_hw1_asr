@@ -17,7 +17,15 @@ class Trainer(BaseTrainer):
     """
 
     def __init__(self, config, model, criterion, metrics, optimizer=None, lr_scheduler=None, **kwargs):
-        super().__init__(config, model, criterion, metrics, optimizer, lr_scheduler, **kwargs)
+        super().__init__(
+            config=config,
+            model=model,
+            criterion=criterion,
+            metrics=metrics,
+            optimizer=optimizer,
+            lr_scheduler=lr_scheduler,
+            **kwargs
+        )
 
         self.decode_cfg = getattr(self.config, "decoder", {})
         self.use_beam = self.decode_cfg.get("type", "argmax") == "beam"

@@ -2,11 +2,12 @@ import warnings
 
 import hydra
 import torch
+from omegaconf import OmegaConf
 from hydra.utils import instantiate
 
 from src.datasets.data_utils import get_dataloaders
 from src.trainer import Inferencer
-from src.utils.init_utils import set_random_seed
+from src.utils.init_utils import set_random_seed, setup_saving_and_logging
 from src.utils.io_utils import ROOT_PATH
 
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -52,10 +53,16 @@ def main(config):
     save_path = ROOT_PATH / "data" / "saved" / config.inferencer.save_path
     save_path.mkdir(exist_ok=True, parents=True)
 
+    project_config = OmegaConf.to_container(config)
+    logger = setup_saving_and_logging(config)
+    writer = instantiate(config.writer, logger, project_config)
+
     inferencer = Inferencer(
         model=model,
         config=config,
         device=device,
+        logger=logger,
+        writer=writer,
         dataloaders=dataloaders,
         text_encoder=text_encoder,
         batch_transforms=batch_transforms,
