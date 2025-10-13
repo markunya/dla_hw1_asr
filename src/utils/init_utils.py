@@ -155,11 +155,11 @@ def setup_saving_and_logging(config):
         save_dir = ROOT_PATH / config.inferencer.save_dir / config.writer.run_name
     saving_init(save_dir, config)
 
-    if config.trainer.get("resume_from") is not None:
+    if "trainer" in config and config.trainer.get("resume_from") is not None:
         setup_logging(save_dir, append=True)
     else:
         setup_logging(save_dir, append=False)
-    logger = logging.getLogger("train")
+    logger = logging.getLogger("train" if "trainer" in config else "test")
     logger.setLevel(logging.DEBUG)
 
     return logger
