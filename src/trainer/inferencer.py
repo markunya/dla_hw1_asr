@@ -25,6 +25,7 @@ class Inferencer(BaseTrainer):
     ):
         assert (skip_model_load or config.inferencer.get("from_pretrained") is not None), \
             "Provide checkpoint or set skip_model_load=True"
+        
         self.config = config
         self.decode_cfg = getattr(self.config, "decoder", {})
         self.use_beam = self.decode_cfg.get("type", "argmax") == "beam"
@@ -63,6 +64,12 @@ class Inferencer(BaseTrainer):
             except Exception as e:
                 tqdm.write(f"[Trainer] Failed to load LM ({self.lm_path}): {e}\nContinue without LM.")
                 self.lm = None
+
+        if not skip_model_load:
+            pretrained_path = self.config.inferencer.get("from_pretrained")
+            self._from_pretrained(pretrained_path)
+            self.model.to(self.device)
+            self.model.eval()
 
     @torch.no_grad()
     def process_batch(self, batch_idx, batch, metrics, part):
