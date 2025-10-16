@@ -15,10 +15,7 @@ class Inferencer(BaseTrainer):
         config,
         device,
         dataloaders,
-        text_encoder,
         save_path,
-        logger,
-        writer,
         metrics=None,
         batch_transforms=None,
         skip_model_load=False,
@@ -30,12 +27,9 @@ class Inferencer(BaseTrainer):
             metrics=metrics,
             optimizer=None,
             lr_scheduler=None,
-            text_encoder=text_encoder,
             config=config,
             device=device,
             dataloaders=dataloaders,
-            logger=logger,
-            writer=writer,
             **kwargs
         )
 
@@ -55,7 +49,6 @@ class Inferencer(BaseTrainer):
         self.device = device
         self.model = model
         self.batch_transforms = batch_transforms
-        self.text_encoder = text_encoder
         self.evaluation_dataloaders = {k: v for k, v in dataloaders.items()}
         self.save_path = save_path
 
