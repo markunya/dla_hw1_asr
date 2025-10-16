@@ -76,7 +76,9 @@ def beam_search_decode_one(
     
                 if dst.lm_state is None: 
                     dst.lm_state, dst.lm_logp, dst.last_char, dst.word_count = src.lm_state, src.lm_logp, src.last_char, src.word_count
-                dst.p_b = logsumexp(dst.p_b, logsumexp(src.p_b, src.p_nb) + p)
+                p_total = logsumexp(src.p_b, src.p_nb)
+                dst.p_b = logsumexp(dst.p_b, p_total + p)
+
 
                 for c in topk:
                     if c == blank_id: 
@@ -89,24 +91,27 @@ def beam_search_decode_one(
 
                     if src.last_char == ch:
                         dst_same = get(prefix)
-                        if dst_same.lm_state is None:
-                            dst_same.lm_state, dst_same.lm_logp, dst_same.last_char, dst_same.word_count = \
-                                src.lm_state, src.lm_logp, src.last_char, src.word_count
-
+                        dst_same.lm_state = src.lm_state
+                        dst_same.lm_logp = src.lm_logp
+                        dst_same.last_char = src.last_char
+                        dst_same.word_count = src.word_count
                         dst_same.p_nb = logsumexp(dst_same.p_nb, src.p_b + p)
                         continue
+
 
 
                     new_pref = prefix + ch
                     dst_new = get(new_pref)
 
-                    if dst_new.lm_state is None:
-                        dst_new.lm_state, dst_new.lm_logp = src.lm_state, src.lm_logp
+                    if dst_new.lm_state is None and src.lm_state is not None:
+                        dst_new.lm_state = kenlm.State()
+                        dst_new.lm_state.__setstate__(src.lm_state.__getstate__())
+                        dst_new.lm_logp = src.lm_logp
                         dst_new.word_count = src.word_count
                     dst_new.last_char = ch
                     dst_new.p_nb = logsumexp(dst_new.p_nb, logsumexp(src.p_b, src.p_nb) + p)
 
-                    if lm is not None and ch == space_token:
+                    if lm is not None and ch == space_token and src.last_char not in (space_token, None):
                         prev = prefix.rstrip()
                         last_word = prev.split(" ")[-1] if prev else ""
                         if last_word:
@@ -127,6 +132,7 @@ def beam_search_decode_one(
                 end_state = kenlm.State()
                 add_end = lm.BaseScore(new_state, "</s>", end_state) * np.log(10.0)
                 best_entry.lm_logp += add_end
+                best_entry.word_count += 1
 
         return " ".join(best_prefix.strip().split())
 
