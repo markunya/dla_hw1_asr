@@ -8,7 +8,7 @@ defaults:
   - text_encoder: ctc
   - _self_
 inferencer:
-  device_tensors: ["data_object", "labels"]
+  device_tensors: ["spectrogram", "spectrogram_length"]
   device: auto
   save_dir: "inference_saved"
   seed: 1
