@@ -19,20 +19,7 @@ class Inferencer(BaseTrainer):
         metrics=None,
         batch_transforms=None,
         skip_model_load=False,
-        **kwargs
     ):
-        super().__init__(
-            model=model,
-            criterion=None,
-            metrics=metrics,
-            optimizer=None,
-            lr_scheduler=None,
-            config=config,
-            device=device,
-            dataloaders=dataloaders,
-            **kwargs
-        )
-
         assert (skip_model_load or config.inferencer.get("from_pretrained") is not None), \
             "Provide checkpoint or set skip_model_load=True"
         
