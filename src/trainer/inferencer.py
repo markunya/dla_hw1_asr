@@ -25,7 +25,7 @@ class Inferencer(BaseTrainer):
     ):
         assert (skip_model_load or config.inferencer.get("from_pretrained") is not None), \
             "Provide checkpoint or set skip_model_load=True"
-        
+        self.config = config
         self.decode_cfg = getattr(self.config, "decoder", {})
         self.use_beam = self.decode_cfg.get("type", "argmax") == "beam"
         self.beam_size = int(self.decode_cfg.get("beam_size", 20))
