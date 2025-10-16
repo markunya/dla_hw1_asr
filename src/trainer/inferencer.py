@@ -18,6 +18,7 @@ class Inferencer(BaseTrainer):
         save_path,
         logger,
         writer,
+        text_encoder,
         metrics=None,
         batch_transforms=None,
         skip_model_load=False,
@@ -35,6 +36,7 @@ class Inferencer(BaseTrainer):
 
         self.logger = logger
         self.writer = writer
+        self.text_encoder = text_encoder
 
         self.config = config
         self.cfg_trainer = self.config.inferencer
