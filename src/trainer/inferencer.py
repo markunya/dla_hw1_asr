@@ -16,6 +16,8 @@ class Inferencer(BaseTrainer):
         device,
         dataloaders,
         save_path,
+        logger,
+        writer,
         metrics=None,
         batch_transforms=None,
         skip_model_load=False,
@@ -30,6 +32,9 @@ class Inferencer(BaseTrainer):
         self.beta = float(self.decode_cfg.get("beta", 1.5))
         self.prune_topk = self.decode_cfg.get("prune_topk", 50)
         self.lm_path = self.decode_cfg.get("lm_path", None)
+
+        self.logger = logger
+        self.writer = writer
 
         self.config = config
         self.cfg_trainer = self.config.inferencer
