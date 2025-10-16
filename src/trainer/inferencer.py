@@ -28,6 +28,7 @@ class Inferencer(BaseTrainer):
         
         self.config = config
         self.decode_cfg = getattr(self.config, "decoder", {})
+        print("-----> ", self.decode_cfg.get("type", "argmax"))
         self.use_beam = (self.decode_cfg.get("type", "argmax") == "beam")
         self.beam_size = int(self.decode_cfg.get("beam_size", 20))
         self.alpha = float(self.decode_cfg.get("alpha", 0.7))
@@ -80,9 +81,6 @@ class Inferencer(BaseTrainer):
         batch.update(outputs)
 
         if self.use_beam:
-            print(
-                f"{self.beam_size}\n"
-            )
             preds = beam_search_decode_lp(
                 log_probs=batch["log_probs"],
                 log_probs_length=batch["log_probs_length"],
