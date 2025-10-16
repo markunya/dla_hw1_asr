@@ -83,7 +83,7 @@ class Inferencer(BaseTrainer):
             preds = beam_search_decode_lp(
                 log_probs=batch["log_probs"],
                 log_probs_length=batch["log_probs_length"],
-                ind2char=self.text_encoder.ind2char,
+                ind2tok=self.text_encoder.ind2tok,
                 blank_id=self.text_encoder.blank_id,
                 beam_size=self.beam_size,
                 alpha=self.alpha,
