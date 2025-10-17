@@ -79,7 +79,6 @@ def beam_search_decode_one(
                 p_total = logsumexp(src.p_b, src.p_nb)
                 dst.p_b = logsumexp(dst.p_b, p_total + p)
 
-
                 for c in topk:
                     if c == blank_id: 
                         continue
@@ -97,8 +96,6 @@ def beam_search_decode_one(
                         dst_same.word_count = src.word_count
                         dst_same.p_nb = logsumexp(dst_same.p_nb, src.p_b + p)
                         continue
-
-
 
                     new_pref = prefix + ch
                     dst_new = get(new_pref)

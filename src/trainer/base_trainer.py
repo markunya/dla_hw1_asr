@@ -176,6 +176,10 @@ class BaseTrainer:
 
             if stop_process:
                 break
+    
+    @abstractmethod
+    def log_predictions(self, *kwargs):
+        raise NotImplementedError
 
     def _train_epoch(self, epoch):
         """
@@ -268,6 +272,7 @@ class BaseTrainer:
             self._log_batch(
                 batch_idx, batch, part
             )
+            self.log_predictions(**batch)
 
         return self.evaluation_metrics.result()
 

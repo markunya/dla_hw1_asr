@@ -3,7 +3,6 @@ import numpy as np
 from string import ascii_lowercase
 
 import torch
-import kenlm
 
 class CTCTextEncoder:
     EMPTY_TOK = ""

@@ -127,7 +127,6 @@ class Trainer(BaseTrainer):
         self, text, log_probs, log_probs_length, audio_path, examples_to_log=10, **batch
     ):
         argmax_inds = log_probs.cpu().argmax(-1).numpy()
-        tqdm.write(str(argmax_inds))
 
         argmax_inds = [
             inds[: int(ind_len)]

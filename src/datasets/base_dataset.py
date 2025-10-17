@@ -84,18 +84,17 @@ class BaseDataset(Dataset):
         text = data_dict["text"]
         text_encoded = self.text_encoder.encode(text)
 
-        spectrogram = self.get_spectrogram(audio)
-
         instance_data = {
             "audio": audio,
-            "spectrogram": spectrogram,
             "text": text,
             "text_encoded": text_encoded,
             "audio_path": audio_path,
         }
 
         instance_data = self.preprocess_data(instance_data)
-
+        spectrogram = self.get_spectrogram(audio)
+        instance_data['spectrogram'] = spectrogram
+        
         return instance_data
 
     def __len__(self):
