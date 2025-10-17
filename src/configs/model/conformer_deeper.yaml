@@ -1,0 +1,2 @@
+_target_: src.model.conformer.ConformerCTC
+num_layers: 16
