@@ -4,6 +4,7 @@ import random
 import numpy as np
 import torch
 import torchaudio
+from tqdm import tqdm
 from torch.utils.data import Dataset
 
 from src.text_encoder import CTCTextEncoder
@@ -96,7 +97,8 @@ class BaseDataset(Dataset):
         instance_data['spectrogram'] = spectrogram
 
         if torch.isnan(spectrogram).any():
-            raise ValueError('Nan occured in spectorgram')
+            tqdm.write('Nan occred in spectrogram. Replace')
+            instance_data['spectrogram'] = spectrogram.nan_to_num(0)
 
         return instance_data
 
