@@ -92,7 +92,7 @@ class BaseDataset(Dataset):
         }
 
         instance_data = self.preprocess_data(instance_data)
-        spectrogram = self.get_spectrogram(audio)
+        spectrogram = self.get_spectrogram(instance_data['audio'])
         instance_data['spectrogram'] = spectrogram
         
         return instance_data
