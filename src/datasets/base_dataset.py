@@ -94,7 +94,10 @@ class BaseDataset(Dataset):
         instance_data = self.preprocess_data(instance_data)
         spectrogram = self.get_spectrogram(instance_data['audio'])
         instance_data['spectrogram'] = spectrogram
-        
+
+        if torch.isnan(spectrogram).any():
+            raise ValueError('Nan occured in spectorgram')
+
         return instance_data
 
     def __len__(self):
