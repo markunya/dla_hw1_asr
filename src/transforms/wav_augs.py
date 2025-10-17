@@ -43,6 +43,7 @@ class RandomNoise:
         noise_waveform = noise_waveform.repeat(1, repeat_factor)
         noise_waveform = noise_waveform[:, :target_length]
 
+        noise_waveform = noise_waveform.nan_to_num(0)
         return noise_waveform
 
     def __call__(self, wav: Tensor):
@@ -99,4 +100,5 @@ class RandomImpulseResponse:
         except Exception:
             return wav
         
-        return processed_wav.squeeze(0)
+        processed_wav = processed_wav.nan_to_num(0).squeeze(0)
+        return processed_wav
