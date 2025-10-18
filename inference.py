@@ -4,6 +4,7 @@ import hydra
 import torch
 from omegaconf import OmegaConf
 from hydra.utils import instantiate
+from pathlib import Path
 
 from src.datasets.data_utils import get_dataloaders
 from src.trainer import Inferencer
@@ -43,7 +44,7 @@ def main(config):
             instantiate(metric_config, text_encoder=text_encoder)
         )
 
-    save_path = ROOT_PATH / "data" / "saved_inference"
+    save_path = Path(config.inferencer.save_dir)
     save_path.mkdir(exist_ok=True, parents=True)
 
     project_config = OmegaConf.to_container(config)

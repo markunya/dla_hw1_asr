@@ -52,6 +52,7 @@ coverage.xml
 *.cover
 .hypothesis/
 inference_saved
+custom_dataset
 # Translations
 *.mo
 *.pot
