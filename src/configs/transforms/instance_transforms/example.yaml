@@ -23,9 +23,9 @@ train:
     transforms:
       - _target_: src.transforms.wav_augs.Gain
       - _target_: src.transforms.wav_augs.RandomImpulseResponse
-        root: dns_irs
+        root: data/dns_irs
       - _target_: src.transforms.wav_augs.RandomNoise
-        root: dns_noises
+        root: data/dns_noises
 
 inference:
   get_spectrogram:

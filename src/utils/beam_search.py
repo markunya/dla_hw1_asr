@@ -90,19 +90,19 @@ def beam_search_decode_one(
 
                     if src.last_char == ch:
                         dst_same = get(prefix)
-                        dst_same.lm_state = src.lm_state
-                        dst_same.lm_logp = src.lm_logp
-                        dst_same.last_char = src.last_char
-                        dst_same.word_count = src.word_count
-                        dst_same.p_nb = logsumexp(dst_same.p_nb, src.p_b + p)
+                        if dst_same.lm_state is None:
+                            dst_same.lm_state = src.lm_state
+                            dst_same.lm_logp = src.lm_logp
+                            dst_same.last_char = src.last_char
+                            dst_same.word_count = src.word_count
+                        dst_same.p_nb = logsumexp(dst_same.p_nb, src.p_nb + p)
                         continue
 
                     new_pref = prefix + ch
                     dst_new = get(new_pref)
 
-                    if dst_new.lm_state is None and src.lm_state is not None:
-                        dst_new.lm_state = kenlm.State()
-                        dst_new.lm_state.__setstate__(src.lm_state.__getstate__())
+                    if dst_new.lm_state is None:
+                        dst_new.lm_state = src.lm_state
                         dst_new.lm_logp = src.lm_logp
                         dst_new.word_count = src.word_count
                     dst_new.last_char = ch
