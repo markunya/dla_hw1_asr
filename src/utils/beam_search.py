@@ -29,6 +29,9 @@ def kenlm_start(lm):
     lm.BeginSentenceWrite(st)
     return st
 
+def to_char_sequence(word: str) -> str:
+    return " ".join(list(word))
+
 def kenlm_advance_word(lm, state, word: str):
     new_state = kenlm.State()
     score_log10 = lm.BaseScore(state, word, new_state)
@@ -112,7 +115,7 @@ def beam_search_decode_one(
                         prev = prefix.rstrip()
                         last_word = prev.split(" ")[-1] if prev else ""
                         if last_word:
-                            new_state, add_lp = kenlm_advance_word(lm, src.lm_state, last_word)
+                            new_state, add_lp = kenlm_advance_word(lm, src.lm_state, to_char_sequence(last_word))
                             dst_new.lm_state = new_state
                             dst_new.lm_logp = src.lm_logp + add_lp
                             dst_new.word_count = src.word_count + 1

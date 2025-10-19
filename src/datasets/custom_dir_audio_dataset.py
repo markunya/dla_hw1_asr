@@ -1,8 +1,7 @@
 from pathlib import Path
-import torchaudio  # добавлено
+import torchaudio
 
 from src.datasets.base_dataset import BaseDataset
-
 
 class CustomDirAudioDataset(BaseDataset):
     def __init__(self, audio_dir, transcription_dir=None, target_sr=16000, *args, **kwargs):

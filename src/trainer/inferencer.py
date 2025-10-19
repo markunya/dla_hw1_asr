@@ -51,7 +51,7 @@ class Inferencer(BaseTrainer):
         if self.metrics is not None:
             self.evaluation_metrics = MetricTracker(
                 *[m.name for m in self.metrics["inference"]],
-                writer=None,
+                writer=self.writer,
             )
         else:
             self.evaluation_metrics = None
