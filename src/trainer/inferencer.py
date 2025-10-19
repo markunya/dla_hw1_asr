@@ -124,6 +124,7 @@ class Inferencer(BaseTrainer):
                         f"{calc_wer(tgt, pred)*100:.4f}",
                         f"{calc_cer(tgt, pred)*100:.4f}",
                     ])
+            tqdm.write(f"Predictions saved to {csv_path}")
 
         batch["pred_text"] = preds
         batch["target_text"] = targets
