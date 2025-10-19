@@ -4,7 +4,6 @@ defaults:
   - datasets: test-other
   - dataloader: torch_dataloader
   - transforms: only_instanse
-  - writer: cometml
   - text_encoder: ctc
   - _self_
 inferencer:

@@ -137,6 +137,15 @@ class BaseTrainer:
 
         self.detect_anomaly = bool(self.cfg_trainer.get("detect_anomaly", False))
 
+    def _log(self, message, severity):
+        if self.logger is not None:
+            if severity == "info":
+                self.logger.info(message)
+            elif severity == "warning":
+                self.logger.warning(message)
+            elif severity == "debug":
+                self.logger.debug(message)
+
     def train(self):
         """
         Wrapper around training process to save model on keyboard interrupt.
@@ -144,7 +153,7 @@ class BaseTrainer:
         try:
             self._train_process()
         except KeyboardInterrupt as e:
-            self.logger.info("Saving model on keyboard interrupt")
+            self._log("Saving model on keyboard interrupt", "info")
             self._save_checkpoint(self._last_epoch, save_best=False)
             raise e
 
@@ -165,7 +174,7 @@ class BaseTrainer:
             logs.update(result)
 
             for key, value in logs.items():
-                self.logger.info(f"    {key:15s}: {value}")
+                self._log(f"    {key:15s}: {value}", "info")
 
             best, stop_process, not_improved_count = self._monitor_performance(
                 logs, not_improved_count
@@ -207,7 +216,7 @@ class BaseTrainer:
                 )
             except torch.cuda.OutOfMemoryError as e:
                 if self.skip_oom:
-                    self.logger.warning("OOM on batch. Skipping batch.")
+                    self._log("OOM on batch. Skipping batch.", "warning")
                     torch.cuda.empty_cache()
                     continue
                 else:
@@ -217,10 +226,10 @@ class BaseTrainer:
 
             if batch_idx % self.log_step == 0:
                 self.writer.set_step((epoch - 1) * self.epoch_len + batch_idx)
-                self.logger.debug(
+                self._log(
                     "Train Epoch: {} {} Loss: {:.6f}".format(
                         epoch, self._progress(batch_idx), batch["loss"].item()
-                    )
+                    ), "debug"
                 )
                 self.writer.add_scalar(
                     "learning rate", self.lr_scheduler.get_last_lr()[0]
@@ -304,9 +313,9 @@ class BaseTrainer:
                 else:
                     improved = False
             except KeyError:
-                self.logger.warning(
+                self._log(
                     f"Warning: Metric '{self.mnt_metric}' is not found. "
-                    "Model performance monitoring is disabled."
+                    "Model performance monitoring is disabled.", "warning"
                 )
                 self.mnt_mode = "off"
                 improved = False
@@ -319,9 +328,9 @@ class BaseTrainer:
                 not_improved_count += 1
 
             if not_improved_count >= self.early_stop:
-                self.logger.info(
+                self._log(
                     "Validation performance didn't improve for {} epochs. "
-                    "Training stops.".format(self.early_stop)
+                    "Training stops.".format(self.early_stop), "info"
                 )
                 stop_process = True
         return best, stop_process, not_improved_count
@@ -470,13 +479,13 @@ class BaseTrainer:
             torch.save(state, filename)
             if self.config.writer.log_checkpoints:
                 self.writer.add_checkpoint(filename, str(self.checkpoint_dir.parent))
-            self.logger.info(f"Saving checkpoint: {filename} ...")
+            self._log(f"Saving checkpoint: {filename} ...", "info")
         if save_best:
             best_path = str(self.checkpoint_dir / "model_best.pth")
             torch.save(state, best_path)
             if self.config.writer.log_checkpoints:
                 self.writer.add_checkpoint(best_path, str(self.checkpoint_dir.parent))
-            self.logger.info("Saving current best: model_best.pth ...")
+            self._log("Saving current best: model_best.pth ...", "info")
 
     def _resume_checkpoint(self, resume_path):
         """
@@ -491,15 +500,15 @@ class BaseTrainer:
             resume_path (str): Path to the checkpoint to be resumed.
         """
         resume_path = str(resume_path)
-        self.logger.info(f"Loading checkpoint: {resume_path} ...")
+        self._log(f"Loading checkpoint: {resume_path} ...", "info")
         checkpoint = torch.load(resume_path, self.device)
         self.start_epoch = checkpoint["epoch"] + 1
         self.mnt_best = checkpoint["monitor_best"]
 
         if checkpoint["config"]["model"] != self.config["model"]:
-            self.logger.warning(
+            self._log(
                 "Warning: Architecture configuration given in the config file is different from that "
-                "of the checkpoint. This may yield an exception when state_dict is loaded."
+                "of the checkpoint. This may yield an exception when state_dict is loaded.", "warning"
             )
         self.model.load_state_dict(checkpoint["state_dict"])
 
@@ -507,17 +516,17 @@ class BaseTrainer:
             checkpoint["config"]["optimizer"] != self.config["optimizer"]
             or checkpoint["config"]["lr_scheduler"] != self.config["lr_scheduler"]
         ):
-            self.logger.warning(
+            self._log(
                 "Warning: Optimizer or lr_scheduler given in the config file is different "
                 "from that of the checkpoint. Optimizer and scheduler parameters "
-                "are not resumed."
+                "are not resumed.", "warning"
             )
         else:
             self.optimizer.load_state_dict(checkpoint["optimizer"])
             self.lr_scheduler.load_state_dict(checkpoint["lr_scheduler"])
 
-        self.logger.info(
-            f"Checkpoint loaded. Resume training from epoch {self.start_epoch}"
+        self._log(
+            f"Checkpoint loaded. Resume training from epoch {self.start_epoch}", "info"
         )
 
     def _from_pretrained(self, pretrained_path):
@@ -533,7 +542,7 @@ class BaseTrainer:
         """
         pretrained_path = str(pretrained_path)
         if hasattr(self, "logger"):
-            self.logger.info(f"Loading model weights from: {pretrained_path} ...")
+            self._log(f"Loading model weights from: {pretrained_path} ...", "info")
         else:
             print(f"Loading model weights from: {pretrained_path} ...")
         checkpoint = torch.load(pretrained_path, self.device, weights_only=False)

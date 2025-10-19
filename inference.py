@@ -48,9 +48,11 @@ def main(config):
     save_path.mkdir(exist_ok=True, parents=True)
 
     project_config = OmegaConf.to_container(config)
-    logger = setup_saving_and_logging(config)
-
-    writer = instantiate(config.writer, logger, project_config)
+    
+    writer, logger = None, None
+    if 'writer' in config:
+        logger = setup_saving_and_logging(config)
+        writer = instantiate(config.writer, logger, project_config)
 
     inferencer = Inferencer(
         model=model,
